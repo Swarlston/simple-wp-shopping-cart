@@ -6,6 +6,28 @@ add_shortcode('wp_cart_button', 'wp_cart_button_handler');
 add_shortcode('wp_cart_display_product', 'wp_cart_display_product_handler');
 add_shortcode('wp_compact_cart', 'wspsc_compact_cart_handler');
 add_shortcode('wp_compact_cart2', 'wspsc_compact_cart2_handler');
+add_shortcode('wp_one_click_checkout', 'wp_one_click_checkout_handler');
+
+
+function wp_one_click_checkout_handler($atts){
+	extract(shortcode_atts(array(
+		'name' => '',
+		'item_number' =>'',
+		'price' => '',
+		'button_text' => '',
+		'button_image' => '',
+	), $atts));
+
+	if(empty($name)){
+		return '<div style="color:red;">'.(__("Error! You must specify a product name in the shortcode.", "wordpress-simple-paypal-shopping-cart")).'</div>';
+	}
+	if(empty($price)){
+		return '<div style="color:red;">'.(__("Error! You must specify a price for your product in the shortcode.", "wordpress-simple-paypal-shopping-cart")).'</div>';
+	}
+	$price = wspsc_strip_char_from_price_amount($price);
+
+	return print_one_click_checkout_button($name, $price, $atts['item_number']);
+}
 
 function wp_cart_button_handler($atts){
 	extract(shortcode_atts(array(

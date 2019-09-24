@@ -353,7 +353,7 @@ function wpspc_cart_actions_handler() {
     }
 }
 
-function wp_cart_add_custom_field() {
+function wp_cart_add_custom_field($one_click_checkout = false) {
     $_SESSION[ 'wp_cart_custom_values' ]	 = "";
     $custom_field_val			 = "";
     $name					 = 'wp_cart_id';
@@ -384,6 +384,13 @@ function wp_cart_add_custom_field() {
 	$name			 = "coupon_code";
 	$value			 = $_SESSION[ 'wpspsc_applied_coupon_code' ];
 	$custom_field_val	 = wpc_append_values_to_custom_field( $name, $value );
+    }
+
+    if( $one_click_checkout)
+    {
+	    $name			 = "one_click";
+	    $value			 = 1;
+	    $custom_field_val	 = wpc_append_values_to_custom_field( $name, $value );
     }
 
     $custom_field_val	 = apply_filters( 'wpspc_cart_custom_field_value', $custom_field_val );

@@ -136,6 +136,23 @@ class paypal_ipn_handler {
 	}
 
 	$post_id		 = $custom_values[ 'wp_cart_id' ];
+	if ($custom_values['one_click'])
+	{
+	  $post_id = wpspc_insert_new_record();
+	  if(is_wp_error($post_id)){
+	    $this->debug_log('Inser Error: ' . $post_id->get_error_message(), false);
+	    return;
+	  }
+	  $items  = array_map(function($e) {return [
+	  	'name' => $e['item_name'],
+		  'quantity' => $e['quantity'],
+		  'price' => $e['mc_gross'],
+		  'item_number' => $e['item_number'],
+	  ];}, $cart_items);
+	  update_post_meta( $post_id, 'wpsc_cart_items', $items);
+	  $this->debug_log('Inserted Order for One-Click-Checkout:' . $post_id, true);
+	}
+
 	$orig_cart_items	 = get_post_meta( $post_id, 'wpsc_cart_items', true );
 	$ip_address		 = isset( $custom_values[ 'ip' ] ) ? $custom_values[ 'ip' ] : '';
 	$applied_coupon_code	 = isset( $custom_values[ 'coupon_code' ] ) ? $custom_values[ 'coupon_code' ] : '';
@@ -143,6 +160,7 @@ class paypal_ipn_handler {
 	$this->debug_log( 'Custom values', true );
 	$this->debug_log_array( $custom_values, true );
 	$this->debug_log( 'Order post id: ' . $post_id, true );
+
 
 	//*** Do security checks ***
 	if ( empty( $post_id ) ) {

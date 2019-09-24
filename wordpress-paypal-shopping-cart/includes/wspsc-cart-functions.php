@@ -2,6 +2,137 @@
 global $carts_cnt;
 $carts_cnt = 0;
 
+function print_one_click_checkout_button($name, $price, $item_number)
+{
+    $output = "";
+
+    $email			 = get_bloginfo( 'admin_email' );
+    $use_affiliate_platform	 = get_option( 'wp_use_aff_platform' );
+    $defaultCurrency	 = get_option( 'cart_payment_currency' );
+    $defaultSymbol		 = get_option( 'cart_currency_symbol' );
+    $defaultEmail		 = get_option( 'cart_paypal_email' );
+    if ( ! empty( $defaultCurrency ) )
+        $paypal_currency	 = $defaultCurrency;
+    else
+        $paypal_currency	 = __( "USD", "wordpress-simple-paypal-shopping-cart" );
+    if ( ! empty( $defaultSymbol ) )
+        $paypal_symbol		 = $defaultSymbol;
+    else
+        $paypal_symbol		 = __( "$", "wordpress-simple-paypal-shopping-cart" );
+
+    if ( ! empty( $defaultEmail ) )
+        $email = $defaultEmail;
+
+    $decimal = '.';
+    $urls	 = '';
+
+    $return = get_option( 'cart_return_from_paypal_url' );
+    if ( empty( $return ) ) {
+        $return = WP_CART_SITE_URL . '/';
+    }
+    $return_url = add_query_arg( 'reset_wp_cart', '1', $return );
+
+    $urls .= '<input type="hidden" name="return" value="' . $return_url . '" />';
+
+    $cancel = get_option( 'cart_cancel_from_paypal_url' );
+    if ( isset( $cancel ) && ! empty( $cancel ) ) {
+        $urls .= '<input type="hidden" name="cancel_return" value="' . $cancel . '" />';
+    }
+
+    $notify	 = WP_CART_SITE_URL . '/?simple_cart_ipn=1';
+    $notify	 = apply_filters( 'wspsc_paypal_ipn_notify_url', $notify );
+    $urls	 .= '<input type="hidden" name="notify_url" value="' . $notify . '" />';
+
+    $title = get_option( 'wp_cart_title' );
+    //if (empty($title)) $title = __("Your Shopping Cart", "wordpress-simple-paypal-shopping-cart");
+
+    global $plugin_dir_name;
+    $output .= '<div class="shopping_cart">';
+        $total_items	 = 0;
+    $total		 = 0;
+    $form		 = '';
+    $item_total_shipping	 = 0;
+    $postage_cost		 = 0;
+    $item_tpl	 = "{name: '%s', quantity: '%d', price: '%s', currency: '" . $paypal_currency . "'}";
+    $items_list	 = '';
+    $item = [
+        'quantity' => 1,
+        'price' => $price,
+        'name' => $name,
+        'item_number' => $item_number,
+    ];
+
+
+    $form .= "
+        <input type=\"hidden\" name=\"item_name_1\" value=\"" . esc_attr( $item[ 'name' ] ) . "\" />
+        <input type=\"hidden\" name=\"amount_1\" value='" . wpspsc_number_format_price( $item[ 'price' ] ) . "' />
+        <input type=\"hidden\" name=\"quantity_1\" value=\"" . esc_attr( $item[ 'quantity' ] ) . "\" />
+        <input type='hidden' name='item_number_1' value='" . esc_attr( $item[ 'item_number' ] ) . "' />
+    ";
+    if ( ! get_option( 'wp_shopping_cart_use_profile_shipping' ) ) {
+        //Not using profile based shipping
+        $postage_cost	 = wpspsc_number_format_price( $postage_cost );
+        $form		 .= "<input type=\"hidden\" name=\"shipping_1\" value='" . esc_attr( $postage_cost ) . "' />"; //You can also use "handling_cart" variable to use shipping and handling here
+    }
+
+    //Tackle the "no_shipping" parameter
+    if ( get_option( 'wp_shopping_cart_collect_address' ) ) {//force address collection
+        $form .= '<input type="hidden" name="no_shipping" value="2" />';
+    } else {
+        //Not using the force address collection feature
+        if ( $postage_cost == 0 ) {
+            //No shipping amount present in the cart. Set flag for "no shipping address collection".
+            $form .= '<input type="hidden" name="no_shipping" value="1" />';
+        }
+    }
+
+
+
+    if ( isset( $_SESSION[ 'wpspsc_cart_action_msg' ] ) && ! empty( $_SESSION[ 'wpspsc_cart_action_msg' ] ) ) {
+        $output .= '<span class="wpspsc_cart_action_msg">' . $_SESSION[ 'wpspsc_cart_action_msg' ] . '</span>';
+    }
+
+    $paypal_checkout_url = WP_CART_LIVE_PAYPAL_URL;
+    if ( get_option( 'wp_shopping_cart_enable_sandbox' ) ) {
+        $paypal_checkout_url = WP_CART_SANDBOX_PAYPAL_URL;
+    }
+
+    $form_target_code = '';
+    if ( get_option( 'wspsc_open_pp_checkout_in_new_tab' ) ) {
+        $form_target_code = 'target="_blank"';
+    }
+
+    $output = apply_filters( 'wpspsc_before_checkout_form', $output );
+
+    $output	 .= '<form action="' . $paypal_checkout_url . '" method="post" ' . $form_target_code . '>';
+    $output	 .= $form;
+    $style	 = get_option( 'wpspc_disable_standard_checkout' ) && get_option( 'wpspc_enable_pp_smart_checkout' ) ? 'display:none !important" data-wspsc-hidden="1' : '';
+    $checkout_button_img_src = WP_CART_URL . '/images/' . (__( "paypal_checkout_EN.png", "wordpress-simple-paypal-shopping-cart" ));
+    $output			 .= '<input type="image" src="' . apply_filters( 'wspsc_cart_checkout_button_image_src', $checkout_button_img_src ) . '" name="submit" class="wp_cart_checkout_button wp_cart_checkout_button_' . $carts_cnt . '" style="' . $style . '" alt="' . (__( "Make payments with PayPal - it\'s fast, free and secure!", "wordpress-simple-paypal-shopping-cart" )) . '" />';
+
+    $output .= $urls . '
+        <input type="hidden" name="business" value="' . $email . '" />
+        <input type="hidden" name="currency_code" value="' . $paypal_currency . '" />
+        <input type="hidden" name="cmd" value="_cart" />
+        <input type="hidden" name="upload" value="1" />
+        <input type="hidden" name="rm" value="2" />
+        <input type="hidden" name="charset" value="utf-8" />';
+
+    $page_style_name = get_option( 'wp_cart_paypal_co_page_style' );
+    if ( ! empty( $page_style_name ) ) {
+        $output .= '<input type="hidden" name="image_url" value="' . $page_style_name . '" />';
+    }
+    $output .= wp_cart_add_custom_field(true);
+
+    $extra_pp_fields = apply_filters( 'wspsc_cart_extra_paypal_fields', '' ); //Can be used to add extra PayPal hidden input fields for the cart checkout
+    $output		 .= $extra_pp_fields;
+
+    $output .= '</form>';
+    $output	 .= "</div>";
+    $output	 = apply_filters( 'wpspsc_after_cart_output', $output );
+    return $output;
+}
+
 function print_wp_shopping_cart( $args = array() ) {
     $output = "";
     global $carts_cnt;

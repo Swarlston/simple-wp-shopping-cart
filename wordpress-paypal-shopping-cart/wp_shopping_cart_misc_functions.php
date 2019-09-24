@@ -125,8 +125,8 @@ function wpspc_insert_new_record()
     'post_status'   => 'trash',
     );
     // Insert the post into the database
-    $post_id  = wp_insert_post($wpsc_order);
-    if($post_id){
+    $post_id  = wp_insert_post($wpsc_order, true);
+    if(!is_wp_error($post_id)){
         //echo "post id: ".$post_id;
         $_SESSION['simple_cart_id'] = $post_id;
         $updated_wpsc_order = array(
@@ -142,6 +142,7 @@ function wpspc_insert_new_record()
             update_post_meta( $post_id, 'wpsc_cart_items', $_SESSION['simpleCart']);
         }
     }
+    return $post_id;
 }
 
 function wpspc_update_cart_items_record()
