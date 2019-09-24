@@ -7,6 +7,40 @@ add_shortcode('wp_cart_display_product', 'wp_cart_display_product_handler');
 add_shortcode('wp_compact_cart', 'wspsc_compact_cart_handler');
 add_shortcode('wp_compact_cart2', 'wspsc_compact_cart2_handler');
 add_shortcode('wp_one_click_checkout', 'wp_one_click_checkout_handler');
+add_shortcode('sold_units', 'wp_handle_sold_units');
+
+function wp_handle_sold_units($attrs){
+	$price = $attrs['price'];
+	if (empty($price))
+		return '<div style="color:red;">Ey amount vergessen!</div>';
+
+	// hardcoded kickstarter units
+	$counts = [
+		'15.00' => 499,
+		'55.00' => 128
+	];
+
+	$args = array(
+		'post_type' => 'wpsc_cart_orders',
+		'meta_query'     => array(
+			'relation' => 'AND',
+			array(
+				'key'     => 'wpsc_total_amount',
+				'value'   => $price,
+				'compare' => '=',
+			),
+			array(
+				'key' => 'wpsc_order_status',
+				'value' => 'paid',
+				'compare' => '='
+			)
+		),
+	);
+
+// The User Query
+	$result = new WP_Query( $args );
+	return ($counts[$price] ?: 0) + $result->found_posts;
+}
 
 
 function wp_one_click_checkout_handler($atts){
