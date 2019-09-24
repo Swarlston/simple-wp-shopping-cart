@@ -2,6 +2,32 @@
 global $carts_cnt;
 $carts_cnt = 0;
 
+function add_email_event_handler()
+{
+    $output = '';
+    $output .= '<input id="paypal_email_input" placeholder="Email Address">';
+    $output .='
+    <script>
+        window.addEventListener(\'load\', function(){
+            var list = document.querySelectorAll(\'.paypal_form\');
+            for (var i = 0; i < list.length; i++)
+            {
+                list[i].addEventListener(\'submit\', function(e) {
+                    var custom_input = this.custom;
+                    var values = decodeURIComponent(custom_input.value).split(\'&\').filter(function(e){
+                        return e.split(\'=\')[0] !== \'email\';
+                    });
+                    values.push(\'email=\' + document.getElementById(\'paypal_email_input\').value);
+                    
+                    custom_input.value = encodeURIComponent(values.join(\'&\'));
+                });
+            }
+        });
+    </script>
+    ';
+    return $output;
+}
+
 function print_one_click_checkout_button($name, $price, $item_number)
 {
     $output = "";
@@ -104,7 +130,7 @@ function print_one_click_checkout_button($name, $price, $item_number)
 
     $output = apply_filters( 'wpspsc_before_checkout_form', $output );
 
-    $output	 .= '<form action="' . $paypal_checkout_url . '" method="post" ' . $form_target_code . '>';
+    $output	 .= '<form class="paypal_form" action="' . $paypal_checkout_url . '" method="post" ' . $form_target_code . '>';
     $output	 .= $form;
     $style	 = get_option( 'wpspc_disable_standard_checkout' ) && get_option( 'wpspc_enable_pp_smart_checkout' ) ? 'display:none !important" data-wspsc-hidden="1' : '';
     $checkout_button_img_src = WP_CART_URL . '/images/' . (__( "paypal_checkout_EN.png", "wordpress-simple-paypal-shopping-cart" ));

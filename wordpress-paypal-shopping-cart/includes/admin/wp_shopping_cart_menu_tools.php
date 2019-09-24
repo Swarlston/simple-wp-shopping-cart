@@ -78,6 +78,7 @@ function wspsc_export_orders_data_to_csv(){
         $first_name = get_post_meta( $order_id, 'wpsc_first_name', true );
         $last_name = get_post_meta( $order_id, 'wpsc_last_name', true );
         $email = get_post_meta( $order_id, 'wpsc_email_address', true );
+        $paypal_email = get_post_meta( $order_id, 'wpsc_paypal_email_address', true );
         $ip_address = get_post_meta( $order_id, 'wpsc_ipaddress', true );
         $total_amount = get_post_meta( $order_id, 'wpsc_total_amount', true );
         $shipping_amount = get_post_meta( $order_id, 'wpsc_shipping_amount', true );
@@ -88,7 +89,7 @@ function wspsc_export_orders_data_to_csv(){
         $items_ordered = get_post_meta( $order_id, 'wpspsc_items_ordered', true );
         $items_ordered = str_replace(array("\n", "\r", "\r\n", "\n\r"), ' ', $items_ordered);
 
-        $fields = array($order_id, $txn_id, $order_date, $first_name, $last_name, $email, $ip_address, $total_amount, $shipping_amount, $applied_coupon, $address, $items_ordered);
+        $fields = array($order_id, $txn_id, $order_date, $first_name, $last_name, $email, $paypal_email, $ip_address, $total_amount, $shipping_amount, $applied_coupon, $address, $items_ordered);
 	
 	$fields=apply_filters('wpspc_export_csv_data',$fields,$order_id);
 	

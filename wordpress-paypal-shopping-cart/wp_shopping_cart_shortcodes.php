@@ -8,6 +8,12 @@ add_shortcode('wp_compact_cart', 'wspsc_compact_cart_handler');
 add_shortcode('wp_compact_cart2', 'wspsc_compact_cart2_handler');
 add_shortcode('wp_one_click_checkout', 'wp_one_click_checkout_handler');
 add_shortcode('sold_units', 'wp_handle_sold_units');
+add_shortcode('paypal_email_js', 'wp_paypal_email_js_handler');
+
+function wp_paypal_email_js_handler()
+{
+	return add_email_event_handler();
+}
 
 function wp_handle_sold_units($attrs){
 	$price = $attrs['price'];

@@ -42,6 +42,7 @@ function wpspc_order_review_meta_box($wpsc_cart_orders) {
     $first_name = get_post_meta($wpsc_cart_orders->ID, 'wpsc_first_name', true);
     $last_name = get_post_meta($wpsc_cart_orders->ID, 'wpsc_last_name', true);
     $email = get_post_meta($wpsc_cart_orders->ID, 'wpsc_email_address', true);
+    $paypal_email = get_post_meta($wpsc_cart_orders->ID, 'wpsc_paypal_email_address', true);
     $txn_id = get_post_meta($wpsc_cart_orders->ID, 'wpsc_txn_id', true);
     $ip_address = get_post_meta($wpsc_cart_orders->ID, 'wpsc_ipaddress', true);
     $total_amount = get_post_meta($wpsc_cart_orders->ID, 'wpsc_total_amount', true);
@@ -80,6 +81,10 @@ function wpspc_order_review_meta_box($wpsc_cart_orders) {
         <tr>
             <td><?php _e("Email Address", "wordpress-simple-paypal-shopping-cart"); ?></td>
             <td><input type="text" size="40" name="wpsc_email_address" value="<?php echo esc_attr($email); ?>" /></td>
+        </tr>
+        <tr>
+            <td><?php _e("Paypal Email Address", "wordpress-simple-paypal-shopping-cart"); ?></td>
+            <td><input type="text" size="40" name="wpsc_email_address" value="<?php echo esc_attr($paypal_email); ?>" /></td>
         </tr>
         <tr>
             <td><?php _e("IP Address", "wordpress-simple-paypal-shopping-cart"); ?></td>
@@ -195,6 +200,7 @@ function wpspc_orders_display_columns($columns) {
     $columns['wpsc_first_name'] = __("First Name", "wordpress-simple-paypal-shopping-cart");
     $columns['wpsc_last_name'] = __("Last Name", "wordpress-simple-paypal-shopping-cart");
     $columns['wpsc_email_address'] = __("Email", "wordpress-simple-paypal-shopping-cart");
+    $columns['wpsc_paypal_email_address'] = "Paypal-".__("Email", "wordpress-simple-paypal-shopping-cart");
     $columns['wpsc_total_amount'] = __("Total", "wordpress-simple-paypal-shopping-cart");
     $columns['wpsc_order_status'] = __("Status", "wordpress-simple-paypal-shopping-cart");
     $columns['date'] = __("Date", "wordpress-simple-paypal-shopping-cart");
@@ -213,6 +219,9 @@ function wpspc_populate_order_columns($column, $post_id) {
         echo esc_attr($last_name);
     } else if ('wpsc_email_address' == $column) {
         $email = get_post_meta($post_id, 'wpsc_email_address', true);
+        echo esc_attr($email);
+    } else if ('wpsc_paypal_email_address' == $column) {
+        $email = get_post_meta($post_id, 'wpsc_paypal_email_address', true);
         echo esc_attr($email);
     } else if ('wpsc_total_amount' == $column) {
         $total_amount = get_post_meta($post_id, 'wpsc_total_amount', true);
@@ -252,6 +261,7 @@ function wp_cart_search_where($where) {
                 "/\(\s*" . $wpdb->posts . ".post_title\s+LIKE\s*(\'[^\']+\')\s*\)/", "(" . $wpdb->postmeta . ".meta_key=\"wpsc_first_name\" AND " . $wpdb->postmeta . ".meta_value LIKE $1)"
                 . " OR (" . $wpdb->postmeta . ".meta_key=\"wpsc_last_name\" AND " . $wpdb->postmeta . ".meta_value LIKE $1)"
                 . " OR (" . $wpdb->postmeta . ".meta_key=\"wpsc_email_address\" AND " . $wpdb->postmeta . ".meta_value LIKE $1)"
+                . " OR (" . $wpdb->postmeta . ".meta_key=\"wpsc_paypal_email_address\" AND " . $wpdb->postmeta . ".meta_value LIKE $1)"
                 , $where);
     }
     return $where;

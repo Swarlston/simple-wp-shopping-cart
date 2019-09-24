@@ -56,6 +56,10 @@ class paypal_ipn_handler {
 	$this->debug_log( 'Custom field value in the IPN: ' . $custom_value_str, true );
 	$custom_values		 = wp_cart_get_custom_var_array( $custom_value_str );
 
+	if ($custom_values['email'] && (filter_var($custom_values['email'], FILTER_VALIDATE_EMAIL))) {
+	    $buyer_email = $custom_values['email'];
+	}
+
 	$this->debug_log( 'Payment Status: ' . $payment_status, true );
 	if ( $payment_status == "Completed" || $payment_status == "Processed" ) {
 	    //We will process this notification
@@ -218,6 +222,7 @@ class paypal_ipn_handler {
 	update_post_meta( $post_id, 'wpsc_first_name', $first_name );
 	update_post_meta( $post_id, 'wpsc_last_name', $last_name );
 	update_post_meta( $post_id, 'wpsc_email_address', $buyer_email );
+	update_post_meta( $post_id, 'wpsc_paypal_email_address', $this->ipn_data['payer_email']);
 	update_post_meta( $post_id, 'wpsc_txn_id', $txn_id );
 	$mc_gross	 = $this->ipn_data[ 'mc_gross' ];
 	update_post_meta( $post_id, 'wpsc_total_amount', $mc_gross );
