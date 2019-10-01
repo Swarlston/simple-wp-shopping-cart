@@ -15,26 +15,14 @@ function wp_paypal_email_js_handler()
 	return add_email_event_handler();
 }
 
-function wp_handle_sold_units($attrs){
-	$price = $attrs['price'];
-	if (empty($price))
-		return '<div style="color:red;">Ey amount vergessen!</div>';
+function wp_handle_sold_units(){
 
 	// hardcoded kickstarter units
-	$counts = [
-		'15.00' => 499,
-		'55.00' => 128
-	];
+	$kickstarter_units = 1247;
 
 	$args = array(
 		'post_type' => 'wpsc_cart_orders',
 		'meta_query'     => array(
-			'relation' => 'AND',
-			array(
-				'key'     => 'wpsc_total_amount',
-				'value'   => $price,
-				'compare' => '=',
-			),
 			array(
 				'key' => 'wpsc_order_status',
 				'value' => 'paid',
@@ -45,7 +33,7 @@ function wp_handle_sold_units($attrs){
 
 // The User Query
 	$result = new WP_Query( $args );
-	return ($counts[$price] ?: 0) + $result->found_posts;
+	return $kickstarter_units + $result->found_posts;
 }
 
 
